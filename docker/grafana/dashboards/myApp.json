@@ -1,0 +1,75 @@
+{
+  "id": null,
+  "uid": "prisma-dashboard",
+  "title": "Prisma Client Metrics",
+  "tags": ["prisma", "metrics"],
+  "timezone": "browser",
+  "schemaVersion": 37,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Query Duration (avg over 1m)",
+      "targets": [
+        {
+          "expr": "rate(prisma_client_queries_duration_seconds_sum[1m]) / rate(prisma_client_queries_duration_seconds_count[1m])",
+          "legendFormat": "avg duration (s)",
+          "refId": "A"
+        }
+      ],
+      "id": 1,
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "stat",
+      "title": "Total Queries",
+      "targets": [
+        {
+          "expr": "sum(increase(prisma_client_queries_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "id": 2,
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "stat",
+      "title": "Query Errors (last 5m)",
+      "targets": [
+        {
+          "expr": "sum(increase(prisma_client_queries_errors_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "id": 3,
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "graph",
+      "title": "Open DB Connections",
+      "targets": [
+        {
+          "expr": "prisma_client_connections_open",
+          "legendFormat": "open connections",
+          "refId": "A"
+        }
+      ],
+      "id": 4,
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "graph",
+      "title": "Active Queries",
+      "targets": [
+        {
+          "expr": "prisma_client_queries_active",
+          "legendFormat": "active",
+          "refId": "A"
+        }
+      ],
+      "id": 5,
+      "datasource": "Prometheus"
+    }
+  ]
+}

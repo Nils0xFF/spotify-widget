@@ -1,0 +1,61 @@
+{
+  "id": null,
+  "title": "Redis Exporter",
+  "uid": "redis-exporter",
+  "tags": ["redis", "exporter"],
+  "timezone": "browser",
+  "schemaVersion": 37,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Used Memory",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes",
+          "refId": "A"
+        }
+      ],
+      "unit": "bytes",
+      "id": 1,
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "graph",
+      "title": "Commands Processed/sec",
+      "targets": [
+        {
+          "expr": "rate(redis_commands_processed_total[1m])",
+          "refId": "A"
+        }
+      ],
+      "id": 2,
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "stat",
+      "title": "Connected Clients",
+      "targets": [
+        {
+          "expr": "redis_connected_clients",
+          "refId": "A"
+        }
+      ],
+      "id": 3,
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "graph",
+      "title": "Cache Hit Rate",
+      "targets": [
+        {
+          "expr": "rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "id": 4,
+      "datasource": "Prometheus"
+    }
+  ]
+}

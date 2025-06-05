@@ -4,12 +4,24 @@ import NextAuth from 'next-auth';
 import Spotify from 'next-auth/providers/spotify';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Spotify],
+  providers: [
+    Spotify({
+      authorization: {
+        url: 'https://accounts.spotify.com/authorize',
+        params: {
+          scope: 'user-read-email user-read-currently-playing',
+        },
+      },
+    }),
+  ],
   adapter: PrismaAdapter(prisma),
   callbacks: {
+    authorized: async ({ auth }) => {
+      return !!auth;
+    },
     async session({ session, user }) {
       const [spotifyAccount] = await prisma.account.findMany({
-        where: { userId: user.id },
+        where: { userId: user.id, provider: 'spotify' },
       });
 
       if (
