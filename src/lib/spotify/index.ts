@@ -12,7 +12,10 @@ export async function getNowPlaying(
     }
   );
 
-  if (!res.ok) return null;
+  if (!res.ok) {
+    console.error('Error fetching now playing', res);
+    return null;
+  }
 
   try {
     return await res.json();

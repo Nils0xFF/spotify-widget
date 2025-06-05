@@ -50,17 +50,22 @@ export const getAndRefreshUserToken = async (userId: string) => {
     !spotifyAccount.expires_at ||
     !spotifyAccount.refresh_token
   ) {
-    return null;
+    throw new Error('RefreshTokenError');
   }
 
   if (spotifyAccount.expires_at * 1000 < Date.now()) {
-    // If the access token has expired, try to refresh it
     try {
       const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization:
+            'Basic ' +
+            Buffer.from(
+              `${process.env.AUTH_SPOTIFY_ID}:${process.env.AUTH_SPOTIFY_SECRET}`
+            ).toString('base64'),
+        },
         body: new URLSearchParams({
-          client_id: process.env.AUTH_SPOTIFY_ID!,
-          client_secret: process.env.AUTH_SPOTIFY_SECRET!,
           grant_type: 'refresh_token',
           refresh_token: spotifyAccount.refresh_token,
         }),
@@ -76,13 +81,14 @@ export const getAndRefreshUserToken = async (userId: string) => {
         refresh_token?: string;
       };
 
+      const data = {
+        access_token: newTokens.access_token,
+        expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
+        refresh_token: newTokens.refresh_token,
+      };
+
       await prisma.account.update({
-        data: {
-          access_token: newTokens.access_token,
-          expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
-          refresh_token:
-            newTokens.refresh_token ?? spotifyAccount.refresh_token,
-        },
+        data,
         where: {
           userId: userId,
           provider_providerAccountId: {
@@ -94,20 +100,20 @@ export const getAndRefreshUserToken = async (userId: string) => {
 
       await redis.set(
         'account:' + userId,
-        JSON.stringify({ ...spotifyAccount, ...newTokens }),
+        JSON.stringify({ ...spotifyAccount, ...data }),
         {
-          expiration: { type: 'EX', value: 1000 * 60 * 60 },
+          expiration: { type: 'EXAT', value: data.expires_at },
         }
       );
 
       return newTokens.access_token;
     } catch (error) {
       console.error('Error refreshing access_token', error);
-      return null;
+      throw new Error('RefreshTokenError');
     }
   } else {
     await redis.set('account:' + userId, JSON.stringify(spotifyAccount), {
-      expiration: { type: 'EX', value: 1000 * 60 * 60 },
+      expiration: { type: 'EXAT', value: spotifyAccount.expires_at },
     });
     return spotifyAccount.access_token;
   }

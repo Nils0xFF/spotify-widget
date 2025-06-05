@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!force) {
-    const cacheEntry = await redis.get('widget:' + widgetId);
+    const cacheEntry = await redis.get('nowPlaying:' + widgetId);
     if (cacheEntry) return NextResponse.json(JSON.parse(cacheEntry));
   }
 
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   const nowPlaying = await getNowPlaying(userToken);
 
   redis.set('nowPlaying:' + widgetId, JSON.stringify(nowPlaying), {
-    expiration: { type: 'EX', value: 10 },
+    expiration: { type: 'PX', value: 9500 },
   });
 
   return NextResponse.json(nowPlaying);
