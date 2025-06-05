@@ -3,7 +3,7 @@
 import { auth } from '@/auth';
 import { createWidget, getWidgets } from '@/lib/db';
 
-export async function createWidgetAction() {
+async function createWidgetAction() {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Not authenticated');
   await createWidget('Test', session.user.id);
